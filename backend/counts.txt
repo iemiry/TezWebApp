@@ -1,0 +1,21 @@
+Top 20 most common tags:
+preparation: 190982
+time-to-make: 186847
+course: 180878
+main-ingredient: 142570
+dietary: 138670
+easy: 105599
+occasion: 95225
+cuisine: 75847
+low-in-something: 71871
+equipment: 60395
+main-dish: 59495
+60-minutes-or-less: 57784
+number-of-servings: 49197
+meat: 46847
+30-minutes-or-less: 46018
+vegetables: 45564
+taste-mood: 43935
+north-american: 40598
+4-hours-or-less: 39934
+15-minutes-or-less: 37379

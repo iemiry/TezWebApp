@@ -1,0 +1,10 @@
+# Büyük veri ve model dosyaları
+*.pkl
+*.csv
+*.npz
+*.zip
+
+# Python ortamı
+venv/
+__pycache__/
+.env

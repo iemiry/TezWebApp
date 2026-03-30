@@ -1,0 +1,8 @@
+{
+  "keys": [
+    "idx_to_recipe_id",
+    "recipe_id_to_tfidf_idx"
+  ],
+  "user_keys_sample": [],
+  "item_keys_sample": []
+}
