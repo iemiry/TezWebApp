@@ -1,7 +1,13 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from schemas.recipe import RecipeResponse, RecommendationResponse
 from services.recommender import RecommenderService
+from core.database import get_db
+from models.user import Favorite, Rating, User
+from core.security import get_current_user
+from pydantic import BaseModel
 import os
 
 router = APIRouter()
@@ -26,6 +32,14 @@ from pydantic import BaseModel
 class BulkRecipeRequest(BaseModel):
     recipe_ids: List[str]
 
+class RatingRequest(BaseModel):
+    score: int
+    
+class RatingResponse(BaseModel):
+    average_rating: float
+    total_reviews: int
+    user_rating: Optional[int] = None
+
 @router.get("/recipes", response_model=List[dict])
 def get_recipes(limit: int = 10, category: Optional[str] = None, q: Optional[str] = None):
     return recommender.get_recipes(limit=limit, category=category, query=q)
@@ -49,20 +63,70 @@ def get_recipe_by_id(recipe_id: str = Path(..., description="ID of the recipe"))
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
 
+@router.post("/recipes/{recipe_id}/rate")
+def rate_recipe(
+    request: RatingRequest, 
+    recipe_id: str = Path(...), 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    if request.score < 1 or request.score > 5:
+        raise HTTPException(status_code=400, detail="Score must be between 1 and 5")
+
+    rating = db.query(Rating).filter(Rating.user_id == current_user.id, Rating.recipe_id == recipe_id).first()
+    if rating:
+        rating.score = request.score
+    else:
+        new_rating = Rating(user_id=current_user.id, recipe_id=recipe_id, score=request.score)
+        db.add(new_rating)
+    
+    db.commit()
+    return {"status": "success", "score": request.score}
+
+@router.get("/recipes/{recipe_id}/ratings", response_model=RatingResponse)
+def get_recipe_ratings(
+    recipe_id: str = Path(...), 
+    user_id: Optional[int] = None, 
+    db: Session = Depends(get_db)
+):
+    # Base dataset rating simulation (random or from recipe)
+    # Since we can't easily cross-read from the massive pkl in a lightweight endpoint safely every time, 
+    # we'll look up the recipe directly
+    recipe = recommender.get_recipe(recipe_id)
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+        
+    dataset_rating = float(recipe.get("rating", 4.0))
+    dataset_reviews = int(recipe.get("reviews", 10))
+    
+    # Custom Ratings
+    custom_ratings = db.query(Rating.score).filter(Rating.recipe_id == recipe_id).all()
+    custom_total = len(custom_ratings)
+    custom_sum = sum(r[0] for r in custom_ratings)
+    
+    # Blended Rating
+    blended_sum = (dataset_rating * dataset_reviews) + custom_sum
+    blended_reviews = dataset_reviews + custom_total
+    
+    blended_average = blended_sum / blended_reviews if blended_reviews > 0 else 0
+    
+    user_rating = None
+    if user_id:
+        u_rating = db.query(Rating).filter(Rating.user_id == user_id, Rating.recipe_id == recipe_id).first()
+        if u_rating:
+            user_rating = u_rating.score
+            
+    return {
+        "average_rating": round(blended_average, 1),
+        "total_reviews": blended_reviews,
+        "user_rating": user_rating
+    }
+
 @router.get("/recommendations/{user_id}", response_model=List[dict])
-def get_recommendations(user_id: int = Path(..., description="The ID of the user")):
+def get_recommendations(user_id: int = Path(..., description="The ID of the user"), db: Session = Depends(get_db)):
     """Get personalized recommendations using LightFM or Content-Based Fallback"""
-    import json
-    import os
-    db_path = os.path.join(os.path.dirname(__file__), "db.json")
-    favs = []
-    try:
-        if os.path.exists(db_path):
-            with open(db_path, "r") as f:
-                db = json.load(f)
-                favs = db.get("users", {}).get(str(user_id), {}).get("favorites", [])
-    except:
-        pass
+    fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
+    favs = [f.recipe_id for f in fav_records]
 
     recs = recommender.get_recommendations(user_external_id=user_id, num_items=10, favorite_ids=favs)
     if not recs:

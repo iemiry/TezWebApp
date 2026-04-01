@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, PlusCircle, Grid, List, Heart, Utensils, Calendar, Wheat, Flame } from 'lucide-react';
+import { Edit, PlusCircle, Grid, List, Heart, Utensils, Calendar, Wheat, Flame, User } from 'lucide-react';
 import { MOCK_USER } from '../constants';
 import { RecipeCard } from '../components/RecipeCard';
 import { Recipe } from '../types';
@@ -34,19 +34,30 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
     const userId = localStorage.getItem('user_id') || '1';
     
     if (activeTab === 'recommended') {
-      fetch(`http://localhost:8000/api/recommendations/${userId}`)
+      fetch(`http://localhost:8000/api/recommendations/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
         .then(res => res.json())
         .then(data => setRecipes(data))
         .catch(err => console.error(err));
     } else if (activeTab === 'saved') {
       // First get IDs, then query bulk recipes
-      fetch(`http://localhost:8000/api/users/${userId}/favorites`)
+      fetch(`http://localhost:8000/api/users/${userId}/favorites`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
         .then(res => res.json())
         .then(ids => {
-          if (!ids || ids.length === 0) return setRecipes([]);
+          if (!ids || ids.length === 0 || ids.detail) return setRecipes([]);
           return fetch(`http://localhost:8000/api/recipes/bulk`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            },
             body: JSON.stringify({ recipe_ids: ids })
           }).then(r => r.json()).then(data => setRecipes(data));
         })
@@ -61,13 +72,8 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
       {/* Profile Header */}
       <section className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-16 pt-8">
         <div className="relative group">
-          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-surface-container">
-            <img 
-              src={user.avatar} 
-              alt={user.name}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-surface-container flex items-center justify-center bg-surface-container-high text-on-surface-variant">
+            <User className="w-20 h-20" strokeWidth={1.5} />
           </div>
           <button onClick={handleEditProfile} className="absolute bottom-1 right-1 bg-primary text-on-primary p-2 rounded-full shadow-lg hover:scale-105 transition-transform">
             <Edit className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Clock, Star, Utensils, Bookmark, Share2, CheckCircle2, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Recipe } from '../types';
 
 export function RecipeDetail() {
@@ -8,6 +9,8 @@ export function RecipeDetail() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [ratingStats, setRatingStats] = useState({ average_rating: 0, total_reviews: 0, user_rating: 0 });
+  const [hoverRating, setHoverRating] = useState(0);
 
   useEffect(() => {
     const userId = localStorage.getItem('user_id') || '1';
@@ -21,18 +24,39 @@ export function RecipeDetail() {
   }, [id]);
 
   const toggleFavorite = () => {
-    const userId = localStorage.getItem('user_id') || '1';
+    const userId = localStorage.getItem('user_id');
+    const token = localStorage.getItem('auth_token');
+    
+    if (!userId || !token) {
+      toast.error('Favorilere eklemek için önce giriş yapmalısınız.');
+      return;
+    }
+
     fetch(`http://localhost:8000/api/users/${userId}/favorites/${id}`, {
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Favoriye eklenemedi");
+        return res.json();
+      })
       .then(data => {
-        setIsFavorite(data.status === 'added');
-      });
+        const added = data.status === 'added';
+        setIsFavorite(added);
+        if (added) {
+          toast.success("Tarif favorilere eklendi");
+        } else {
+          toast.success("Tarif favorilerden çıkarıldı");
+        }
+      })
+      .catch(err => toast.error(err.message));
   };
 
   useEffect(() => {
     setLoading(true);
+    // Fetch recipe details
     fetch(`http://localhost:8000/api/recipes/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -40,9 +64,52 @@ export function RecipeDetail() {
           setRecipe(data);
         }
       })
+      .catch(err => console.error(err));
+
+    // Fetch ratings
+    const userId = localStorage.getItem('user_id');
+    const query = userId ? `?user_id=${userId}` : '';
+    fetch(`http://localhost:8000/api/recipes/${id}/ratings${query}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.detail) {
+          setRatingStats(data);
+        }
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleRate = (score: number) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      toast.error('Puan vermek için giriş yapmalısınız.');
+      return;
+    }
+
+    fetch(`http://localhost:8000/api/recipes/${id}/rate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ score })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Puan kaydedilemedi");
+        return res.json();
+      })
+      .then(() => {
+        toast.success("Puanınız kaydedildi!");
+        setRatingStats(prev => ({ ...prev, user_rating: score }));
+        // Silently refresh average rating
+        const userId = localStorage.getItem('user_id');
+        fetch(`http://localhost:8000/api/recipes/${id}/ratings?user_id=${userId}`)
+          .then(res => res.json())
+          .then(data => setRatingStats(data));
+      })
+      .catch(err => toast.error(err.message));
+  };
 
   if (loading) {
     return <div className="flex h-96 items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
@@ -93,10 +160,29 @@ export function RecipeDetail() {
               <Utensils className="w-4 h-4 text-primary" />
               <span>{recipe.difficulty}</span>
             </div>
-            <div className="flex items-center gap-2 border-l border-outline-variant/30 pl-6">
-              <Star className="w-4 h-4 text-primary fill-current" />
-              <span className="font-bold text-on-surface">{recipe.rating}</span>
-              <span className="opacity-60">({recipe.reviews} reviews)</span>
+            <div className="flex items-center gap-1 border-l border-outline-variant/30 pl-6 relative group">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map(star => (
+                   <Star 
+                     key={star} 
+                     onClick={() => handleRate(star)}
+                     onMouseEnter={() => setHoverRating(star)}
+                     onMouseLeave={() => setHoverRating(0)}
+                     className={`w-5 h-5 cursor-pointer transition-colors ${
+                       (hoverRating || ratingStats.user_rating) >= star 
+                         ? 'fill-primary text-primary' 
+                         : 'text-outline-variant hover:text-primary'
+                     }`} 
+                   />
+                ))}
+              </div>
+              <div className="flex flex-col ml-2">
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-on-surface">{ratingStats.average_rating || recipe.rating}</span>
+                  <span className="text-secondary text-xs">Ağırlıklı Puan</span>
+                </div>
+                <span className="opacity-60 text-xs">({ratingStats.total_reviews || recipe.reviews} değerlendirme)</span>
+              </div>
             </div>
           </div>
 

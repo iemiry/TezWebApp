@@ -136,29 +136,32 @@ class RecommenderService:
         user_external_id = int(user_external_id) if isinstance(user_external_id, str) and user_external_id.isdigit() else 1
         favorite_ids = favorite_ids or []
         
-        if not self.model or self.interactions is None:
-            # CONTENT-BASED FALLBACK: if user has favorites, find similar recipes
-            if isinstance(self.recipes_df, pd.DataFrame) and favorite_ids:
-                fav_df = self.recipes_df[self.recipes_df['id'].astype(str).isin([str(x) for x in favorite_ids])]
-                if not fav_df.empty:
-                    all_fav_tags = []
-                    for t in fav_df['tags']:
-                        if isinstance(t, str):
-                            try:
-                                import ast
-                                parsed = ast.literal_eval(t)
-                                all_fav_tags.extend(parsed)
-                            except:
-                                all_fav_tags.append(t)
-                        elif isinstance(t, list):
-                            all_fav_tags.extend([str(x) for x in t])
+        # 1. PRIMARY LOGIC: Content-based (Tag Matching) natively via favorites
+        if isinstance(self.recipes_df, pd.DataFrame) and favorite_ids:
+            fav_df = self.recipes_df[self.recipes_df['id'].astype(str).isin([str(x) for x in favorite_ids])]
+            if not fav_df.empty:
+                all_fav_tags = []
+                for t in fav_df['tags']:
+                    if isinstance(t, str):
+                        try:
+                            import ast
+                            parsed = ast.literal_eval(t)
+                            all_fav_tags.extend(parsed)
+                        except:
+                            all_fav_tags.append(t)
+                    elif isinstance(t, list):
+                        all_fav_tags.extend([str(x) for x in t])
+                
+                from collections import Counter
+                if all_fav_tags:
+                    # Ignore generic tags to find meaningful food categories
+                    ignore_tags = ['easy', 'preparation', 'time-to-make', 'course', 'main-ingredient', 'dietary', 'equipment', 'diet', 'technique', 'equipment', 'number-of-servings', '4-hours-or-less']
+                    top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(8) if tag.lower() not in ignore_tags]
                     
-                    from collections import Counter
-                    if all_fav_tags:
-                        top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(5) if tag not in ['easy', 'preparation', 'time-to-make', 'course']]
-                        if not top_tags:
-                            top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(3)]
-                            
+                    if not top_tags:
+                        top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(3)]
+                        
+                    if top_tags:
                         import re
                         pattern = '|'.join(map(re.escape, top_tags))
                         candidates = self.recipes_df[self.recipes_df['tags'].astype(str).str.contains(pattern, case=False, na=False)]
@@ -167,35 +170,38 @@ class RecommenderService:
                         if not candidates.empty:
                             df_recs = candidates.sample(n=min(num_items, len(candidates)))
                             return [self._format_recipe(row) for _, row in df_recs.iterrows()]
-            
-            # Fallback to seeded randomized recommendations if no favorites or ML model missing
-            if isinstance(self.recipes_df, pd.DataFrame):
-                np.random.seed(user_external_id)
-                shuffled = self.recipes_df.sample(frac=1)
-                df_recs = shuffled.head(num_items)
-                return [self._format_recipe(row) for _, row in df_recs.iterrows()]
-            return []
-            
-        try:
-            n_users, n_items = self.interactions.shape
-            user_internal_id = user_external_id % n_users
-            
-            scores = self.model.predict(user_internal_id, np.arange(n_items))
-            
+        
+        # 2. SECONDARY LOGIC: ML Collaborative Filtering (If model exists and no favorites yet)
+        if self.model and self.interactions is not None:
             try:
-                known_positives = self.interactions.tocsr()[user_internal_id].indices
-                scores[known_positives] = -np.inf
-            except:
-                pass
+                n_users, n_items = self.interactions.shape
+                user_internal_id = user_external_id % n_users
+                
+                scores = self.model.predict(user_internal_id, np.arange(n_items))
+                
+                try:
+                    known_positives = self.interactions.tocsr()[user_internal_id].indices
+                    scores[known_positives] = -np.inf
+                except:
+                    pass
+                
+                top_items_internal = np.argsort(-scores)[:num_items]
+                top_external_ids = [self.idx_to_recipe_id.get(i, i) for i in top_items_internal]
+                
+                if isinstance(self.recipes_df, pd.DataFrame):
+                    df_recs = self.recipes_df[self.recipes_df['id'].isin(top_external_ids)]
+                    return [self._format_recipe(row) for _, row in df_recs.iterrows()]
+            except Exception as e:
+                print(f"Error generating predictions: {e}")
+                
+        # 3. FALLBACK LOGIC: Random Seed based on User ID
+        if isinstance(self.recipes_df, pd.DataFrame):
+            np.random.seed(user_external_id)
+            shuffled = self.recipes_df.sample(frac=1)
+            df_recs = shuffled.head(num_items)
+            return [self._format_recipe(row) for _, row in df_recs.iterrows()]
             
-            top_items_internal = np.argsort(-scores)[:num_items]
-            top_external_ids = [self.idx_to_recipe_id.get(i, i) for i in top_items_internal]
-            
-            if isinstance(self.recipes_df, pd.DataFrame):
-                df_recs = self.recipes_df[self.recipes_df['id'].isin(top_external_ids)]
-                return [self._format_recipe(row) for _, row in df_recs.iterrows()]
-        except Exception as e:
-            print(f"Error generating predictions: {e}")
+        return []
             
         return self.get_popular_recipes(num_items)
 

@@ -1,8 +1,44 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function Signup() {
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:8000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Kayıt başarısız');
+
+      localStorage.setItem('user_id', data.user_id);
+      localStorage.setItem('user_name', data.name);
+      localStorage.setItem('auth_token', data.token);
+
+      toast.success('Kayıt başarılı! Yönlendiriliyorsunuz...');
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-8 lg:p-12">
       <div className="w-full max-w-6xl flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden ambient-shadow">
@@ -33,7 +69,7 @@ export function Signup() {
               <p className="text-on-surface-variant font-body">Size özel tarifler, teknikler ve gastronomi dünyasından en taze haberler için aramıza katılın.</p>
             </div>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSignup}>
               <div className="space-y-1.5">
                 <label className="block font-body text-sm font-bold text-on-surface-variant" htmlFor="name">Tam İsim</label>
                 <div className="relative">
@@ -41,6 +77,9 @@ export function Signup() {
                   <input 
                     id="name"
                     type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     placeholder="Adınız ve soyadınız"
                     className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/20 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
                   />
@@ -54,6 +93,9 @@ export function Signup() {
                   <input 
                     id="email"
                     type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="orn@email.com"
                     className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/20 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
                   />
@@ -67,6 +109,9 @@ export function Signup() {
                   <input 
                     id="password"
                     type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/20 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
                   />
@@ -80,8 +125,8 @@ export function Signup() {
                 </label>
               </div>
 
-              <button className="w-full bg-sunset-gradient text-on-primary py-4 rounded-xl font-bold text-lg ambient-shadow hover:scale-[1.02] transition-transform duration-200 mt-4">
-                Mutfak Yolculuğuna Başla
+              <button disabled={loading} className="w-full flex justify-center items-center gap-2 bg-sunset-gradient text-on-primary py-4 rounded-xl font-bold text-lg ambient-shadow hover:scale-[1.02] transition-transform duration-200 mt-4 disabled:opacity-50">
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Mutfak Yolculuğuna Başla"}
               </button>
             </form>
 

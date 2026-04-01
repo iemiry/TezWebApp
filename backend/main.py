@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router as api_router
 from api.auth import router as auth_router
 from api.users import router as users_router
+from core.database import engine, Base
+import models.user
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Recipe Recommendation API")
 

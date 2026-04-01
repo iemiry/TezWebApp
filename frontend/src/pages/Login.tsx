@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function Login() {
   const navigate = useNavigate();
@@ -26,11 +27,19 @@ export function Login() {
       const data = await res.json();
       localStorage.setItem('user_id', data.user_id);
       localStorage.setItem('user_name', data.name);
+      localStorage.setItem('auth_token', data.token);
+      if (data.bio) {
+        localStorage.setItem('user_bio', data.bio);
+      }
+      toast.success('Giriş başarılı! Yönlendiriliyorsunuz...');
       
       // Navigate to profile or home
-      navigate('/');
-      window.location.reload(); // Quick state reset
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload(); // Quick state reset
+      }, 1000);
     } catch (err: any) {
+      toast.error(err.message);
       setError(err.message);
     } finally {
       setLoading(false);

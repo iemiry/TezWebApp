@@ -14,6 +14,7 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Categories } from './pages/Categories';
 import { cn } from './lib/utils';
+import { Toaster } from 'react-hot-toast';
 
 function AppContent() {
   const location = useLocation();
@@ -44,6 +45,7 @@ function AppContent() {
 export default function App() {
   return (
     <Router>
+      <Toaster position="bottom-right" />
       <AppContent />
     </Router>
   );
