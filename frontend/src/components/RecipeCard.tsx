@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Clock, Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Recipe } from '../types';
 
 interface RecipeCardProps {
@@ -13,16 +14,43 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault(); // prevent link navigation
-    const userId = localStorage.getItem('user_id') || '1';
+    const userId = localStorage.getItem('user_id');
+    const token = localStorage.getItem('auth_token');
+    
+    if (!userId || !token) {
+      toast.error('Favorilere eklemek için önce giriş yapmalısınız.');
+      return;
+    }
     
     try {
-      const res = await fetch(`http://localhost:8000/api/users/${userId}/favorites/${recipe.id}`, { method: 'POST' });
+      const res = await fetch(`http://localhost:8000/api/users/${userId}/favorites/${recipe.id}`, { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (res.status === 401) {
+        localStorage.clear();
+        window.location.href = '/login';
+        throw new Error("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+      }
+      
       if (res.ok) {
         const data = await res.json();
-        setIsFavorite(data.status === 'added');
+        const added = data.status === 'added';
+        setIsFavorite(added);
+        if (added) {
+          toast.success("Tarif favorilere eklendi");
+        } else {
+          toast.success("Tarif favorilerden çıkarıldı");
+        }
+      } else {
+        toast.error("İşlem başarısız oldu.");
       }
-    } catch(err) {
+    } catch(err: any) {
       console.error("Failed to toggle favorite:", err);
+      toast.error(err.message || "Bir hata oluştu");
     }
   };
   return (

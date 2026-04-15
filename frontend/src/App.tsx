@@ -12,13 +12,14 @@ import { RecipeDetail } from './pages/RecipeDetail';
 import { Profile } from './pages/Profile';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { Onboarding } from './pages/Onboarding';
 import { Categories } from './pages/Categories';
 import { cn } from './lib/utils';
 import { Toaster } from 'react-hot-toast';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isAuthPage = ['/login', '/signup', '/onboarding'].includes(location.pathname);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -35,6 +36,7 @@ function AppContent() {
           <Route path="/favorites" element={<Profile defaultActiveTab="saved" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding" element={<Onboarding />} />
         </Routes>
       </main>
       {!isAuthPage && <Footer />}

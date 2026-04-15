@@ -39,7 +39,14 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (res.status === 401) {
+             localStorage.clear();
+             window.location.href = '/login';
+             throw new Error('Oturum süreniz doldu.');
+          }
+          return res.json();
+        })
         .then(data => setRecipes(data))
         .catch(err => console.error(err));
     } else if (activeTab === 'saved') {
@@ -49,7 +56,14 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (res.status === 401) {
+             localStorage.clear();
+             window.location.href = '/login';
+             throw new Error('Oturum süreniz doldu.');
+          }
+          return res.json();
+        })
         .then(ids => {
           if (!ids || ids.length === 0 || ids.detail) return setRecipes([]);
           return fetch(`http://localhost:8000/api/recipes/bulk`, {

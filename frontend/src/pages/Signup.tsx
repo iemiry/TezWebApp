@@ -30,7 +30,7 @@ export function Signup() {
 
       toast.success('Kayıt başarılı! Yönlendiriliyorsunuz...');
       setTimeout(() => {
-        navigate('/');
+        navigate('/onboarding');
         window.location.reload();
       }, 1000);
     } catch (err: any) {

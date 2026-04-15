@@ -4,6 +4,10 @@ from core.database import get_db
 from models.user import Favorite, User
 from core.security import get_current_user
 from typing import List
+from pydantic import BaseModel
+
+class PreferencesRequest(BaseModel):
+    preferences: List[str]
 
 router = APIRouter()
 
@@ -38,3 +42,31 @@ def get_favorites(user_id: int, db: Session = Depends(get_db), current_user: Use
          
     favs = db.query(Favorite).filter(Favorite.user_id == user_id).all()
     return [f.recipe_id for f in favs]
+
+@router.post("/{user_id}/preferences")
+def update_preferences(user_id: int, request: PreferencesRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Yetkisiz işlem")
+        
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    user.preferences = ",".join(request.preferences)
+    db.commit()
+    return {"status": "success", "preferences": request.preferences}
+
+@router.get("/{user_id}/preferences", response_model=List[str])
+def get_preferences(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Yetkisiz işlem")
+        
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    if not user.preferences:
+        return []
+        
+    return user.preferences.split(",")
+

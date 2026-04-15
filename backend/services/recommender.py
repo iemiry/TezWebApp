@@ -132,44 +132,53 @@ class RecommenderService:
             "tags": tags[:5]
         }
 
-    def get_recommendations(self, user_external_id: int, num_items: int = 10, favorite_ids: List[str] = None) -> List[dict]:
+    def get_recommendations(self, user_external_id: int, num_items: int = 10, favorite_ids: List[str] = None, preferences: List[str] = None) -> List[dict]:
         user_external_id = int(user_external_id) if isinstance(user_external_id, str) and user_external_id.isdigit() else 1
         favorite_ids = favorite_ids or []
+        preferences = preferences or []
         
-        # 1. PRIMARY LOGIC: Content-based (Tag Matching) natively via favorites
-        if isinstance(self.recipes_df, pd.DataFrame) and favorite_ids:
-            fav_df = self.recipes_df[self.recipes_df['id'].astype(str).isin([str(x) for x in favorite_ids])]
-            if not fav_df.empty:
-                all_fav_tags = []
-                for t in fav_df['tags']:
-                    if isinstance(t, str):
-                        try:
-                            import ast
-                            parsed = ast.literal_eval(t)
-                            all_fav_tags.extend(parsed)
-                        except:
-                            all_fav_tags.append(t)
-                    elif isinstance(t, list):
-                        all_fav_tags.extend([str(x) for x in t])
+        # 1. PRIMARY LOGIC: Content-based (Tag Matching) natively via favorites and preferences
+        if isinstance(self.recipes_df, pd.DataFrame) and (favorite_ids or preferences):
+            all_fav_tags = []
+            
+            if favorite_ids:
+                fav_df = self.recipes_df[self.recipes_df['id'].astype(str).isin([str(x) for x in favorite_ids])]
+                if not fav_df.empty:
+                    for t in fav_df['tags']:
+                        if isinstance(t, str):
+                            try:
+                                import ast
+                                parsed = ast.literal_eval(t)
+                                all_fav_tags.extend(parsed)
+                            except:
+                                all_fav_tags.append(t)
+                        elif isinstance(t, list):
+                            all_fav_tags.extend([str(x) for x in t])
+            
+            # Explicitly weight user preferences
+            for pref in preferences:
+                if pref.strip():
+                    all_fav_tags.extend([pref.lower().strip()] * 5)
                 
-                from collections import Counter
-                if all_fav_tags:
-                    # Ignore generic tags to find meaningful food categories
-                    ignore_tags = ['easy', 'preparation', 'time-to-make', 'course', 'main-ingredient', 'dietary', 'equipment', 'diet', 'technique', 'equipment', 'number-of-servings', '4-hours-or-less']
-                    top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(8) if tag.lower() not in ignore_tags]
+            from collections import Counter
+            if all_fav_tags:
+                # Ignore generic tags to find meaningful food categories
+                ignore_tags = ['easy', 'preparation', 'time-to-make', 'course', 'main-ingredient', 'dietary', 'equipment', 'diet', 'technique', 'equipment', 'number-of-servings', '4-hours-or-less']
+                top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(8) if tag.lower() not in ignore_tags]
+                
+                if not top_tags:
+                    top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(3)]
                     
-                    if not top_tags:
-                        top_tags = [tag for tag, _ in Counter(all_fav_tags).most_common(3)]
-                        
-                    if top_tags:
-                        import re
-                        pattern = '|'.join(map(re.escape, top_tags))
-                        candidates = self.recipes_df[self.recipes_df['tags'].astype(str).str.contains(pattern, case=False, na=False)]
+                if top_tags:
+                    import re
+                    pattern = '|'.join(map(re.escape, top_tags))
+                    candidates = self.recipes_df[self.recipes_df['tags'].astype(str).str.contains(pattern, case=False, na=False)]
+                    if favorite_ids:
                         candidates = candidates[~candidates['id'].astype(str).isin([str(x) for x in favorite_ids])]
-                        
-                        if not candidates.empty:
-                            df_recs = candidates.sample(n=min(num_items, len(candidates)))
-                            return [self._format_recipe(row) for _, row in df_recs.iterrows()]
+                    
+                    if not candidates.empty:
+                        df_recs = candidates.sample(n=min(num_items, len(candidates)))
+                        return [self._format_recipe(row) for _, row in df_recs.iterrows()]
         
         # 2. SECONDARY LOGIC: ML Collaborative Filtering (If model exists and no favorites yet)
         if self.model and self.interactions is not None:

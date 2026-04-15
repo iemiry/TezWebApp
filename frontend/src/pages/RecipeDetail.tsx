@@ -39,6 +39,11 @@ export function RecipeDetail() {
       }
     })
       .then(res => {
+        if (res.status === 401) {
+             localStorage.clear();
+             window.location.href = '/login';
+             throw new Error("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+        }
         if (!res.ok) throw new Error("Favoriye eklenemedi");
         return res.json();
       })
@@ -96,6 +101,11 @@ export function RecipeDetail() {
       body: JSON.stringify({ score })
     })
       .then(res => {
+        if (res.status === 401) {
+             localStorage.clear();
+             window.location.href = '/login';
+             throw new Error("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+        }
         if (!res.ok) throw new Error("Puan kaydedilemedi");
         return res.json();
       })

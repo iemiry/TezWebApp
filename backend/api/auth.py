@@ -37,7 +37,8 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     return {
         "user_id": user.id,
         "name": user.name,
-        "token": token
+        "token": token,
+        "has_preferences": bool(user.preferences)
     }
 
 @router.post("/login")
@@ -55,5 +56,6 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "user_id": user.id,
         "token": token,
         "name": user.name,
-        "bio": user.bio
+        "bio": user.bio,
+        "has_preferences": bool(user.preferences)
     }

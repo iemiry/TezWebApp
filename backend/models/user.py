@@ -10,6 +10,7 @@ class User(Base):
     name = Column(String)
     bio = Column(String, default="Heirloom Kitchen şefi.")
     hashed_password = Column(String)
+    preferences = Column(String, default="")
     
     favorites = relationship("Favorite", back_populates="user")
 

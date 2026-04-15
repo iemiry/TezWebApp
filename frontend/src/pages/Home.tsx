@@ -8,6 +8,7 @@ export function Home() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const recipesRef = React.useRef<HTMLElement>(null);
   const category = searchParams.get('category');
   const q = searchParams.get('q');
   
@@ -42,6 +43,11 @@ export function Home() {
         } else {
           setRecipes(data);
         }
+        if (q || backendCategory) {
+          setTimeout(() => {
+            recipesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
       })
       .catch(err => console.error("Error fetching recipes:", err));
   }, [backendCategory, q]);
@@ -74,14 +80,14 @@ export function Home() {
               className="w-full py-4 px-6 pr-16 bg-surface/95 backdrop-blur-sm rounded-full text-on-surface border-none shadow-xl focus:ring-2 focus:ring-primary transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && e.currentTarget.value) {
-                  window.location.href = `/?q=${e.currentTarget.value}`;
+                  navigate(`/?q=${e.currentTarget.value}`);
                 }
               }}
             />
             <button 
               onClick={() => {
                 const val = (document.getElementById('hero-search') as HTMLInputElement)?.value;
-                if (val) window.location.href = `/?q=${val}`;
+                if (val) navigate(`/?q=${val}`);
               }}
               className="absolute right-2 top-2 bottom-2 bg-primary text-on-primary px-6 rounded-full flex items-center justify-center hover:bg-primary-container transition-colors">
               <Search className="w-5 h-5" />
@@ -118,7 +124,9 @@ export function Home() {
         </div>
         <button 
           onClick={() => {
-            fetch('http://localhost:8000/api/recipes/random')
+            const userId = localStorage.getItem('user_id');
+            const query = userId ? `?user_id=${userId}` : '';
+            fetch(`http://localhost:8000/api/recipes/random${query}`)
               .then(res => res.json())
               .then(data => {
                 if (data && data.id) {
@@ -193,7 +201,7 @@ export function Home() {
       </section>
 
       {/* Recommended For You / Filtered Items */}
-      <section className="bg-surface-container-low rounded-3xl p-12" id="recipes-section">
+      <section className="bg-surface-container-low rounded-3xl p-12" id="recipes-section" ref={recipesRef}>
         <div className="mb-10 text-center max-w-2xl mx-auto">
           <span className="text-primary font-bold text-sm uppercase tracking-widest">
             {category ? "Category View" : q ? "Search Results" : "Personalized Selection"}

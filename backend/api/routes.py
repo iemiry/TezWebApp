@@ -49,7 +49,17 @@ def get_recipes_bulk(request: BulkRecipeRequest):
     return recommender.get_recipes_by_ids(request.recipe_ids)
 
 @router.get("/recipes/random", response_model=dict)
-def get_random_recipe():
+def get_random_recipe(user_id: Optional[int] = None, db: Session = Depends(get_db)):
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+        prefs = user.preferences.split(',') if user and getattr(user, 'preferences', None) else []
+        fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
+        favs = [f.recipe_id for f in fav_records]
+        if favs or prefs:
+            recs = recommender.get_recommendations(user_external_id=user_id, num_items=1, favorite_ids=favs, preferences=prefs)
+            if recs:
+                return recs[0]
+                
     recipe = recommender.get_random_recipe()
     if not recipe:
         raise HTTPException(status_code=404, detail="No recipes available")
@@ -125,10 +135,13 @@ def get_recipe_ratings(
 @router.get("/recommendations/{user_id}", response_model=List[dict])
 def get_recommendations(user_id: int = Path(..., description="The ID of the user"), db: Session = Depends(get_db)):
     """Get personalized recommendations using LightFM or Content-Based Fallback"""
+    user = db.query(User).filter(User.id == user_id).first()
+    prefs = user.preferences.split(',') if user and getattr(user, 'preferences', None) else []
+    
     fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
     favs = [f.recipe_id for f in fav_records]
 
-    recs = recommender.get_recommendations(user_external_id=user_id, num_items=10, favorite_ids=favs)
+    recs = recommender.get_recommendations(user_external_id=user_id, num_items=10, favorite_ids=favs, preferences=prefs)
     if not recs:
         # If no recs (e.g., new user), fallback to popular
         recs = recommender.get_popular_recipes(10)
