@@ -138,12 +138,12 @@ def get_recommendations(user_id: int = Path(..., description="The ID of the user
     if len(fav_ids) < 10:
         # COLD START: Not enough interactions
         print(f"User {user_id} in COLD START (Favorites: {len(fav_ids)}/10)")
-        return recommender.get_popular_recipes(10)
+        return recommender.get_popular_recipes(30)
         
     # EXCEEDED THRESHOLD: Pass items through Trained Model Latent Space
     print(f"User {user_id} triggered LightFM Inference (Favorites: {len(fav_ids)})!")
-    recs = recommender.get_recommendations(user_external_id=user_id, favorite_ids=fav_ids, num_items=10)
+    recs = recommender.get_recommendations(user_external_id=user_id, favorite_ids=fav_ids, num_items=30)
     
     if not recs:
-        return recommender.get_popular_recipes(10)
+        return recommender.get_popular_recipes(30)
     return recs

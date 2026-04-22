@@ -22,7 +22,7 @@ export function Home() {
   
   useEffect(() => {
     const userId = localStorage.getItem('user_id') || '1';
-    let url = `http://localhost:8000/api/recipes?limit=9`;
+    let url = `http://localhost:8000/api/recipes?limit=30`;
     let isRecommendation = false;
     
     if (backendCategory) {
@@ -37,9 +37,9 @@ export function Home() {
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        // Limit recommendations to 9 to preserve the 3x3 UI grid
+        // Limit recommendations to 30
         if (isRecommendation && Array.isArray(data)) {
-          setRecipes(data.slice(0, 9));
+          setRecipes(data.slice(0, 30));
         } else {
           setRecipes(data);
         }
