@@ -51,14 +51,10 @@ def get_recipes_bulk(request: BulkRecipeRequest):
 @router.get("/recipes/random", response_model=dict)
 def get_random_recipe(user_id: Optional[int] = None, db: Session = Depends(get_db)):
     if user_id:
-        user = db.query(User).filter(User.id == user_id).first()
-        prefs = user.preferences.split(',') if user and getattr(user, 'preferences', None) else []
-        fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
-        favs = [f.recipe_id for f in fav_records]
-        if favs or prefs:
-            recs = recommender.get_recommendations(user_external_id=user_id, num_items=1, favorite_ids=favs, preferences=prefs)
-            if recs:
-                return recs[0]
+        recs = recommender.get_recommendations(user_external_id=user_id, num_items=50)
+        if recs:
+            import random
+            return random.choice(recs)
                 
     recipe = recommender.get_random_recipe()
     if not recipe:
@@ -134,15 +130,20 @@ def get_recipe_ratings(
 
 @router.get("/recommendations/{user_id}", response_model=List[dict])
 def get_recommendations(user_id: int = Path(..., description="The ID of the user"), db: Session = Depends(get_db)):
-    """Get personalized recommendations using LightFM or Content-Based Fallback"""
-    user = db.query(User).filter(User.id == user_id).first()
-    prefs = user.preferences.split(',') if user and getattr(user, 'preferences', None) else []
-    
+    """Get personalized recommendations strictly via LightFM Model Inference"""
+    # 1. Check interaction threshold
     fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
-    favs = [f.recipe_id for f in fav_records]
-
-    recs = recommender.get_recommendations(user_external_id=user_id, num_items=10, favorite_ids=favs, preferences=prefs)
+    fav_ids = [str(f.recipe_id) for f in fav_records]
+    
+    if len(fav_ids) < 10:
+        # COLD START: Not enough interactions
+        print(f"User {user_id} in COLD START (Favorites: {len(fav_ids)}/10)")
+        return recommender.get_popular_recipes(10)
+        
+    # EXCEEDED THRESHOLD: Pass items through Trained Model Latent Space
+    print(f"User {user_id} triggered LightFM Inference (Favorites: {len(fav_ids)})!")
+    recs = recommender.get_recommendations(user_external_id=user_id, favorite_ids=fav_ids, num_items=10)
+    
     if not recs:
-        # If no recs (e.g., new user), fallback to popular
-        recs = recommender.get_popular_recipes(10)
+        return recommender.get_popular_recipes(10)
     return recs
