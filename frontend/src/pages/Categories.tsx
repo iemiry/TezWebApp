@@ -24,7 +24,7 @@ export function Categories() {
       <div className="text-center mb-16 pt-8">
         <span className="text-secondary font-bold text-xs uppercase tracking-widest block font-body mb-2">Keşfedin</span>
         <h1 className="text-4xl md:text-6xl font-headline italic text-on-surface">Tüm Kategoriler</h1>
-        <p className="text-on-surface-variant font-body mt-4 max-w-md mx-auto">İstediğiniz kategoriye ait binlerce tarifi The Curated Hearth'te kolayca bulabilirsiniz.</p>
+        <p className="text-on-surface-variant font-body mt-4 max-w-md mx-auto">İstediğiniz kategoriye ait binlerce tarifi Eat What You Like'te kolayca bulabilirsiniz.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

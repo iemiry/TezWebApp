@@ -137,7 +137,7 @@ export function Login() {
         <div className="mt-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-headline italic text-lg">The Curated Hearth ana sayfasına dön</span>
+            <span className="font-headline italic text-lg">Eat What You Like ana sayfasına dön</span>
           </Link>
         </div>
       </main>

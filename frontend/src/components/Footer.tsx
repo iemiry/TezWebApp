@@ -7,9 +7,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-8 py-12">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <span className="font-headline font-bold text-primary text-xl italic">The Curated Hearth</span>
+            <span className="font-headline font-bold text-primary text-xl italic">Eat What You Like</span>
             <p className="font-body text-sm text-on-surface-variant">
-              © 2024 The Curated Hearth. Bütün hakları saklıdır.
+              © 2024 Eat What You Like. Bütün hakları saklıdır.
             </p>
           </div>
           

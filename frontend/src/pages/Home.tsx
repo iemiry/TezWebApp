@@ -141,65 +141,6 @@ export function Home() {
         </button>
       </section>
 
-      {/* Trending Now */}
-      <section>
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <span className="text-secondary font-bold text-sm uppercase">Currently Hot</span>
-            <h2 className="text-4xl font-headline font-bold text-on-surface italic">Trending Now</h2>
-          </div>
-          <Link to="#" className="text-primary font-bold border-b-2 border-primary/30 hover:border-primary transition-all pb-1">
-            View All Trends
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
-          <div className="md:col-span-8 relative rounded-xl overflow-hidden group cursor-pointer">
-            <img 
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop"
-              alt="Trending"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-transparent to-transparent"></div>
-            <div className="absolute bottom-0 left-0 p-8">
-              <div className="flex gap-2 mb-3">
-                <span className="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold uppercase">Healthy</span>
-                <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white rounded-full text-xs font-bold uppercase">20 Mins</span>
-              </div>
-              <h3 className="text-white text-3xl font-headline font-bold italic">Harissa Roasted Vegetable Bowl</h3>
-            </div>
-          </div>
-          
-          <div className="md:col-span-4 grid grid-rows-2 gap-6">
-            <div className="relative rounded-xl overflow-hidden group cursor-pointer">
-              <img 
-                src="https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=1994&auto=format&fit=crop"
-                alt="Pasta"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-on-surface/40 group-hover:bg-on-surface/20 transition-colors"></div>
-              <div className="absolute bottom-0 left-0 p-6">
-                <h3 className="text-white text-xl font-headline font-bold italic">Heirloom Tomato Pesto Pasta</h3>
-              </div>
-            </div>
-            <div className="relative rounded-xl overflow-hidden group cursor-pointer">
-              <img 
-                src="https://images.unsplash.com/photo-1541919329513-35f7af297129?q=80&w=2070&auto=format&fit=crop"
-                alt="Fondant"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-on-surface/40 group-hover:bg-on-surface/20 transition-colors"></div>
-              <div className="absolute bottom-0 left-0 p-6">
-                <h3 className="text-white text-xl font-headline font-bold italic">Midnight Chocolate Fondant</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Recommended For You / Filtered Items */}
       <section className="bg-surface-container-low rounded-3xl p-12" id="recipes-section" ref={recipesRef}>
         <div className="mb-10 text-center max-w-2xl mx-auto">

@@ -61,7 +61,7 @@ export function Signup() {
         <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-surface-container-low">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-10 text-center md:text-left">
-              <span className="text-primary font-headline text-3xl italic font-bold">The Curated Hearth</span>
+              <span className="text-primary font-headline text-3xl italic font-bold">Eat What You Like</span>
             </div>
 
             <div className="mb-8">

@@ -5,10 +5,10 @@ import { MOCK_USER } from '../constants';
 import { RecipeCard } from '../components/RecipeCard';
 import { Recipe } from '../types';
 
-export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab?: 'recommended' | 'saved' | 'collections' }) {
+export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab?: 'recommended' | 'saved' }) {
   const user = MOCK_USER;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [activeTab, setActiveTab] = useState<'recommended' | 'saved' | 'collections'>(defaultActiveTab);
+  const [activeTab, setActiveTab] = useState<'recommended' | 'saved'>(defaultActiveTab);
   
   useEffect(() => {
     setActiveTab(defaultActiveTab);
@@ -112,19 +112,9 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
               <span className="block text-2xl font-headline text-primary font-bold">{user.stats.followers}</span>
               <span className="text-xs font-body uppercase tracking-tighter text-on-surface-variant">Followers</span>
             </div>
-            <div>
-              <span className="block text-2xl font-headline text-primary font-bold">{user.stats.collections}</span>
-              <span className="text-xs font-body uppercase tracking-tighter text-on-surface-variant">Collections</span>
-            </div>
           </div>
         </div>
 
-        <div className="hidden lg:block">
-          <button className="bg-sunset-gradient text-on-primary px-8 py-4 rounded-xl font-bold shadow-xl hover:opacity-90 transition-all flex items-center gap-2">
-            <PlusCircle className="w-5 h-5" />
-            Add New Recipe
-          </button>
-        </div>
       </section>
 
       {/* Tabs */}
@@ -140,58 +130,17 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
             className={`pb-4 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${activeTab === 'saved' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>
             Saved Recipes
           </button>
-          <button 
-            onClick={() => setActiveTab('collections')}
-            className={`pb-4 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${activeTab === 'collections' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>
-            My Collections
-          </button>
         </div>
       </section>
 
       {/* Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Sidebar */}
-        <aside className="lg:col-span-3 space-y-10">
-          <div>
-            <h3 className="font-headline text-xl mb-6 italic">Collections</h3>
-            <div className="space-y-3">
-              {[
-                { name: 'Italian Night', icon: Utensils, count: 24 },
-                { name: 'Meal Prep Sunday', icon: Calendar, count: 12, active: true },
-                { name: 'Sourdough Journey', icon: Wheat, count: 8 },
-                { name: 'Summer Grill', icon: Flame, count: 19 }
-              ].map((col) => (
-                <div 
-                  key={col.name}
-                  className={`group flex items-center justify-between p-4 rounded-xl transition-colors cursor-pointer ${
-                    col.active ? 'bg-surface-container border-l-4 border-primary' : 'bg-surface-container-low hover:bg-surface-container'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <col.icon className="w-5 h-5 text-secondary" />
-                    <span className="font-body text-sm font-medium">{col.name}</span>
-                  </div>
-                  <span className="text-xs text-on-surface-variant group-hover:text-primary transition-colors">{col.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-secondary-container/30 p-6 rounded-xl border border-secondary/10">
-            <Wheat className="w-6 h-6 text-secondary mb-2" />
-            <h4 className="font-headline text-lg text-secondary mb-2 italic">Sustainable Chef</h4>
-            <p className="text-xs font-body text-on-surface-variant leading-relaxed">
-              You've saved 42kg of CO2 this month by choosing plant-based seasonal recipes.
-            </p>
-          </div>
-        </aside>
-
         {/* Recipe Grid */}
-        <div className="lg:col-span-9">
+        <div className="lg:col-span-12">
           <div className="flex justify-between items-end mb-8">
             <div>
               <h2 className="font-headline text-3xl italic">
-                {activeTab === 'recommended' ? 'Curated For You' : activeTab === 'saved' ? 'Your Saved Vault' : 'Collections'}
+                {activeTab === 'recommended' ? 'Curated For You' : 'Your Saved Vault'}
               </h2>
               <p className="text-on-surface-variant font-body text-sm mt-1">
                 {activeTab === 'recommended' ? 'Machine learning powered recommendations' : 'Recipes you have marked with a heart'}
@@ -211,15 +160,6 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
             {recipes.map(recipe => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
-            
-            {/* Add New Card */}
-            <div className="flex flex-col items-center justify-center aspect-[4/5] rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer group">
-              <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform">
-                <PlusCircle className="w-8 h-8 text-primary" />
-              </div>
-              <span className="font-body font-bold text-on-surface-variant group-hover:text-primary">Add New Recipe</span>
-              <span className="text-[10px] text-on-surface-variant mt-1">Import from URL or create from scratch</span>
-            </div>
           </div>
         </div>
       </div>
