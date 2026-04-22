@@ -171,8 +171,18 @@ class RecommenderService:
                     # Estimate User Vector by pooling their favored item embeddings
                     user_vector = np.mean(item_embeddings, axis=0)
                     
-                    # Score all items by taking dot product of user vector with item vectors
-                    scores = np.dot(user_vector, self.model.item_embeddings.T)
+                    # Normalize vectors to use Cosine Similarity instead of raw Dot Product
+                    # This prevents high-magnitude global items from dominating the recommendations forever
+                    user_norm = np.linalg.norm(user_vector)
+                    user_norm = user_norm if user_norm > 0 else 1e-10
+                    normed_user = user_vector / user_norm
+                    
+                    item_norms = np.linalg.norm(self.model.item_embeddings, axis=1)
+                    item_norms[item_norms == 0] = 1e-10
+                    normed_items = self.model.item_embeddings / item_norms[:, np.newaxis]
+                    
+                    # Score all items (Cosine Similarity)
+                    scores = np.dot(normed_user, normed_items.T)
                     
                     # Mask already favorited ones
                     scores[fav_internal_ids] = -np.inf
@@ -226,6 +236,9 @@ class RecommenderService:
         return []
 
     def get_popular_recipes(self, num_items: int = 10) -> List[dict]:
+        if isinstance(self.recipes_df, pd.DataFrame) and not self.recipes_df.empty:
+            df_recs = self.recipes_df.sample(n=min(num_items, len(self.recipes_df)))
+            return [self._format_recipe(row) for _, row in df_recs.iterrows()]
         return self.get_recipes(limit=num_items)
         
     def get_recipes_by_ids(self, recipe_ids: List[str]) -> List[dict]:
