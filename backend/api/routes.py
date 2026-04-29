@@ -51,10 +51,14 @@ def get_recipes_bulk(request: BulkRecipeRequest):
 @router.get("/recipes/random", response_model=dict)
 def get_random_recipe(user_id: Optional[int] = None, db: Session = Depends(get_db)):
     if user_id:
-        recs = recommender.get_recommendations(user_external_id=user_id, num_items=50)
-        if recs:
-            import random
-            return random.choice(recs)
+        fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
+        fav_ids = [str(f.recipe_id) for f in fav_records]
+        
+        if len(fav_ids) >= 10:
+            recs = recommender.get_recommendations(user_external_id=user_id, favorite_ids=fav_ids, num_items=50)
+            if recs:
+                import random
+                return random.choice(recs)
                 
     recipe = recommender.get_random_recipe()
     if not recipe:

@@ -5,18 +5,19 @@ import { Tag, BookOpen } from 'lucide-react';
 export function Categories() {
   const [categories, setCategories] = useState<{name: string, count: number}[]>([]);
 
+  const CATEGORY_MAP = [
+    { name: "Vegetarian", count: 30156, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&w=800" },
+    { name: "Quick Meals", count: 37379, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&w=800" },
+    { name: "Desserts", count: 34364, img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&w=800" },
+    { name: "Healthy", count: 38179, img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&w=800" },
+    { name: "North American", count: 40598, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&w=800" },
+    { name: "Breakfast", count: 11519, img: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&w=800" },
+    { name: "Dinner Ideas", count: 59495, img: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&w=800" },
+    { name: "Baking", count: 203, img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&w=800" }
+  ];
+
   useEffect(() => {
-    // Generate some static categories since we don't have a backend aggregation for tags yet
-    setCategories([
-      { name: "Vegetarian", count: 30156 },
-      { name: "Quick Meals", count: 37379 },
-      { name: "Desserts", count: 34364 },
-      { name: "Healthy", count: 38179 },
-      { name: "North American", count: 40598 },
-      { name: "Breakfast", count: 11519 },
-      { name: "Dinner Ideas", count: 59495 },
-      { name: "Baking", count: 203 }
-    ]);
+    setCategories(CATEGORY_MAP as any);
   }, []);
 
   return (
@@ -32,7 +33,7 @@ export function Categories() {
           <Link key={i} to={`/?category=${cat.name}`} className="group relative aspect-[3/2] overflow-hidden rounded-2xl bg-surface-container shadow-sm hover:shadow-xl transition-all block">
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 transition-opacity group-hover:opacity-80"></div>
              <img 
-               src={`https://source.unsplash.com/random/600x400/?${cat.name.toLowerCase()}`}
+               src={(cat as any).img}
                alt={cat.name}
                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1490818387583-1b5f222fb209?q=80&w=2000&auto=format&fit=crop"; }}

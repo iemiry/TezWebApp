@@ -114,26 +114,28 @@ class RecommenderService:
 
         recipe_title = str(recipe_dict.get("name", "Unknown Recipe")).title()
         
-        # Context-aware image mapping algorithm based on recipe name
+        # Context-aware image mapping algorithm based on requested specific categories
         name_lower = recipe_title.lower()
         image_url = "https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&w=800" # Default slow roast
         
-        keyword_maps = {
-            ('chicken', 'poultry'): "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&w=800",
-            ('pasta', 'spaghetti', 'macaroni', 'noodle'): "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&w=800",
-            ('beef', 'steak', 'burger', 'meat'): "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&w=800",
-            ('salad', 'greens', 'spinach'): "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&w=800",
-            ('cake', 'cookie', 'dessert', 'chocolate', 'sweet'): "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&w=800",
-            ('pizza', 'dough'): "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&w=800",
-            ('soup', 'stew', 'chili', 'broth'): "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&w=800",
-            ('pork', 'bacon', 'sausage'): "https://images.unsplash.com/photo-1628294895950-9805252327bc?auto=format&w=800",
-            ('fish', 'salmon', 'shrimp', 'seafood'): "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&w=800",
-            ('bread', 'toast', 'loaf', 'bun'): "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&w=800",
-            ('vegetable', 'vegan', 'carrot', 'potato'): "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&w=800"
+        tags_str = " ".join([str(t).lower() for t in tags])
+        
+        category_image_map = {
+            'vegetarian': "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&w=800",
+            '15-minutes-or-less': "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&w=800",
+            'quick meal': "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&w=800",
+            'dessert': "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&w=800",
+            'healthy': "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&w=800",
+            'north-american': "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&w=800",
+            'north american': "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&w=800",
+            'breakfast': "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&w=800",
+            'main-dish': "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&w=800",
+            'dinner': "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&w=800",
+            'baking': "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&w=800"
         }
         
-        for keywords, url in keyword_maps.items():
-            if any(k in name_lower for k in keywords):
+        for cat_tag, url in category_image_map.items():
+            if cat_tag in tags_str or cat_tag in name_lower:
                 image_url = url
                 break
 

@@ -15,7 +15,8 @@ export function Home() {
   const displayToQueryMap: Record<string, string> = {
     "Quick Meals": "15-minutes-or-less",
     "North American": "north-american",
-    "Dinner Ideas": "main-dish"
+    "Dinner Ideas": "main-dish",
+    "Desserts": "dessert"
   };
   
   const backendCategory = category ? (displayToQueryMap[category] || category) : null;
@@ -26,9 +27,9 @@ export function Home() {
     let isRecommendation = false;
     
     if (backendCategory) {
-      url += `&category=${backendCategory}`;
+      url += `&category=${encodeURIComponent(backendCategory)}`;
     } else if (q) {
-      url += `&q=${q}`;
+      url += `&q=${encodeURIComponent(q)}`;
     } else {
       url = `http://localhost:8000/api/recommendations/${userId}`;
       isRecommendation = true;
