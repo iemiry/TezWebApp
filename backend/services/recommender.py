@@ -243,6 +243,36 @@ class RecommenderService:
             return [self._format_recipe(row) for _, row in df_recs.iterrows()]
         return self.get_recipes(limit=num_items)
         
+    def get_recipes_by_preferences(self, preferences: List[str], num_items: int = 30) -> List[dict]:
+        if not isinstance(self.recipes_df, pd.DataFrame) or self.recipes_df.empty or not preferences:
+            return self.get_popular_recipes(num_items)
+            
+        mask = pd.Series([False] * len(self.recipes_df), index=self.recipes_df.index)
+        
+        for pref in preferences:
+            search_term = pref.lower().strip()
+            pref_mask = (
+                self.recipes_df['tags'].astype(str).str.lower().str.contains(search_term, na=False) |
+                self.recipes_df['ingredients'].astype(str).str.lower().str.contains(search_term, na=False) |
+                self.recipes_df['name'].astype(str).str.lower().str.contains(search_term, na=False)
+            )
+            mask = mask | pref_mask
+            
+        df_filtered = self.recipes_df[mask]
+        
+        if df_filtered.empty:
+            return self.get_popular_recipes(num_items)
+            
+        sample_size = min(num_items, len(df_filtered))
+        df_recs = df_filtered.sample(n=sample_size)
+        recs = [self._format_recipe(row) for _, row in df_recs.iterrows()]
+        
+        if len(recs) < num_items:
+            pad_needed = num_items - len(recs)
+            recs.extend(self.get_popular_recipes(pad_needed))
+            
+        return recs
+        
     def get_recipes_by_ids(self, recipe_ids: List[str]) -> List[dict]:
         if isinstance(self.recipes_df, pd.DataFrame) and recipe_ids:
             df_recs = self.recipes_df[self.recipes_df['id'].astype(str).isin([str(r) for r in recipe_ids])]

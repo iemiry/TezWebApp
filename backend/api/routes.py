@@ -134,14 +134,21 @@ def get_recipe_ratings(
 
 @router.get("/recommendations/{user_id}", response_model=List[dict])
 def get_recommendations(user_id: int = Path(..., description="The ID of the user"), db: Session = Depends(get_db)):
-    """Get personalized recommendations strictly via LightFM Model Inference"""
-    # 1. Check interaction threshold
+    """Get personalized recommendations strictly via LightFM Model Inference or Content-Based Cold Start"""
+    # 1. Fetch User and Preferences
+    user = db.query(User).filter(User.id == user_id).first()
+    preferences = user.preferences.split(",") if user and user.preferences else []
+    
+    # 2. Check interaction threshold
     fav_records = db.query(Favorite).filter(Favorite.user_id == user_id).all()
     fav_ids = [str(f.recipe_id) for f in fav_records]
     
     if len(fav_ids) < 10:
         # COLD START: Not enough interactions
         print(f"User {user_id} in COLD START (Favorites: {len(fav_ids)}/10)")
+        if preferences:
+            print(f"User {user_id} triggered Content-Based Cold Start with preferences: {preferences}")
+            return recommender.get_recipes_by_preferences(preferences, 30)
         return recommender.get_popular_recipes(30)
         
     # EXCEEDED THRESHOLD: Pass items through Trained Model Latent Space
