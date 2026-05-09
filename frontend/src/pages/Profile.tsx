@@ -8,6 +8,7 @@ import { Recipe } from '../types';
 export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab?: 'recommended' | 'saved' }) {
   const user = MOCK_USER;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'recommended' | 'saved'>(defaultActiveTab);
   
   useEffect(() => {
@@ -29,6 +30,22 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
        localStorage.setItem('user_bio', newBio);
     }
   };
+
+  useEffect(() => {
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+      fetch(`http://localhost:8000/api/users/${userId}/favorites`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setFavoriteIds(data.map(String));
+      })
+      .catch(err => console.error(err));
+    }
+  }, []);
 
   useEffect(() => {
     const userId = localStorage.getItem('user_id') || '1';
@@ -158,7 +175,7 @@ export function Profile({ defaultActiveTab = 'recommended' }: { defaultActiveTab
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {recipes.map(recipe => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
+              <RecipeCard key={recipe.id} recipe={recipe} initialIsFavorite={activeTab === 'saved' || favoriteIds.includes(String(recipe.id))} />
             ))}
           </div>
         </div>

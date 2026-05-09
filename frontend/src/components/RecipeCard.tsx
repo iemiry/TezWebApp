@@ -6,11 +6,15 @@ import { Recipe } from '../types';
 
 interface RecipeCardProps {
   recipe: Recipe;
-  key?: string | number;
+  initialIsFavorite?: boolean;
 }
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export function RecipeCard({ recipe, initialIsFavorite = false }: RecipeCardProps) {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+
+  React.useEffect(() => {
+    setIsFavorite(initialIsFavorite);
+  }, [initialIsFavorite]);
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault(); // prevent link navigation

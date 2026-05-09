@@ -6,6 +6,7 @@ import { Recipe } from '../types';
 
 export function Home() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const recipesRef = React.useRef<HTMLElement>(null);
@@ -21,6 +22,18 @@ export function Home() {
   
   const backendCategory = category ? (displayToQueryMap[category] || category) : null;
   
+  useEffect(() => {
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+      fetch(`http://localhost:8000/api/users/${userId}/favorites`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setFavoriteIds(data.map(String));
+        })
+        .catch(err => console.error(err));
+    }
+  }, []);
+
   useEffect(() => {
     const userId = localStorage.getItem('user_id') || '1';
     let url = `http://localhost:8000/api/recipes?limit=30`;
@@ -156,7 +169,7 @@ export function Home() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {recipes.map(recipe => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe.id} recipe={recipe} initialIsFavorite={favoriteIds.includes(String(recipe.id))} />
           ))}
         </div>
       </section>
