@@ -14,6 +14,7 @@ export interface Recipe {
   ingredients: string[];
   steps: string[];
   tags: string[];
+  match_percentage?: number;
 }
 
 export interface User {

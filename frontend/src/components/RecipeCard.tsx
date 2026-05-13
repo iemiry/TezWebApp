@@ -66,6 +66,11 @@ export function RecipeCard({ recipe, initialIsFavorite = false }: RecipeCardProp
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           referrerPolicy="no-referrer"
         />
+        {recipe.match_percentage && (
+          <div className="absolute top-4 left-4 bg-primary text-on-primary text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-primary/30 backdrop-blur-md bg-opacity-95">
+            %{recipe.match_percentage} Uyumlu
+          </div>
+        )}
         <button 
           onClick={toggleFavorite}
           className={`absolute top-4 right-4 bg-surface/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-all ${isFavorite ? 'text-primary' : 'text-on-surface-variant'}`}

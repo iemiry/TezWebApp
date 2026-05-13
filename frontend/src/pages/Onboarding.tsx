@@ -4,18 +4,18 @@ import { CheckCircle2, ChevronRight, ChefHat } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TAGS = [
-  { id: 'chicken', label: 'Tavuk Yemekleri' },
-  { id: 'vegetarian', label: 'Vejetaryen' },
-  { id: 'desserts', label: 'Tatlılar' },
-  { id: 'quick', label: 'Pratik' },
-  { id: 'spicy', label: 'Acılı' },
-  { id: 'beef', label: 'Kırmızı Et' },
-  { id: 'healthy', label: 'Sağlıklı' },
-  { id: 'pasta', label: 'Makarna' },
-  { id: 'seafood', label: 'Deniz Ürünleri' },
-  { id: 'breakfast', label: 'Kahvaltı İstiyorum' },
-  { id: 'salad', label: 'Salatalar' },
-  { id: 'soup', label: 'Çorbalar' }
+  { id: 'chicken', label: 'Chicken Dishes' },
+  { id: 'vegetarian', label: 'Vegetarian' },
+  { id: 'desserts', label: 'Desserts' },
+  { id: 'quick', label: 'Quick & Easy' },
+  { id: 'spicy', label: 'Spicy' },
+  { id: 'beef', label: 'Beef' },
+  { id: 'healthy', label: 'Healthy' },
+  { id: 'pasta', label: 'Pasta' },
+  { id: 'seafood', label: 'Seafood' },
+  { id: 'breakfast', label: 'Breakfast' },
+  { id: 'salad', label: 'Salads' },
+  { id: 'soup', label: 'Soups' }
 ];
 
 export function Onboarding() {
@@ -38,7 +38,7 @@ export function Onboarding() {
     }
     
     if (selected.length === 0) {
-      toast.error("Lütfen en az bir tercih seçiniz");
+      toast.error("Please select at least one preference");
       return;
     }
     
@@ -57,15 +57,15 @@ export function Onboarding() {
          return;
        }
        if(res.ok) {
-         toast.success("Mükemmel! Anasayfanız sizin için özel olarak derleniyor...", { duration: 3000 });
+         toast.success("Perfect! Curating your personalized feed...", { duration: 3000 });
          navigate('/');
        } else {
-         toast.error("Bir sorun oluştu.");
+         toast.error("An error occurred.");
        }
     })
     .catch(err => {
       console.error(err);
-      toast.error("İnternet bağlantınızı kontrol edin.");
+      toast.error("Please check your internet connection.");
     });
   };
 
@@ -81,9 +81,9 @@ export function Onboarding() {
           <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
             <ChefHat className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-headline font-bold text-on-surface mb-4 italic">Heirloom Kitchen'a Hoş Geldiniz</h1>
-          <p className="text-lg text-on-surface-variant font-body mb-2">Damak zevkinizi yakından tanımak isteriz!</p>
-          <p className="text-sm font-bold uppercase tracking-widest text-primary">Aşağıdakilerden En Sevdiğiniz Türleri Şeçin</p>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold text-on-surface mb-4 italic">Welcome to Eat What You Like</h1>
+          <p className="text-lg text-on-surface-variant font-body mb-2">We'd love to get to know your taste better!</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-primary">Choose Your Favorite Categories Below</p>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 mb-14">
@@ -111,7 +111,7 @@ export function Onboarding() {
             onClick={handleSave}
             className="flex items-center gap-3 bg-secondary text-on-secondary px-10 py-5 rounded-full font-bold text-lg shadow-xl shadow-secondary/20 hover:bg-secondary-container hover:text-on-secondary-container transition-all hover:-translate-y-1 active:scale-95 group"
           >
-            Lezzet Profilimi Kaydet
+            Save My Flavor Profile
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
