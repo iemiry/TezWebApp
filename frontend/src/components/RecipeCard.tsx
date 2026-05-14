@@ -7,6 +7,7 @@ import { Recipe } from '../types';
 interface RecipeCardProps {
   recipe: Recipe;
   initialIsFavorite?: boolean;
+  key?: React.Key;
 }
 
 export function RecipeCard({ recipe, initialIsFavorite = false }: RecipeCardProps) {

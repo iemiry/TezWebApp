@@ -164,7 +164,6 @@ export function Home() {
           <h2 className="text-4xl font-headline font-bold text-on-surface mt-2 italic">
             {category ? `Recipes in "${category}"` : q ? `Search matching "${q}"` : "Recommended For You"}
           </h2>
-          {!category && !q && <p className="text-on-surface-variant mt-4">Based on your love for Mediterranean flavors and quick weekday preparation.</p>}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
